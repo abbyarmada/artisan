@@ -1,6 +1,6 @@
-==============
-Artisan Worker
-==============
+=======
+Artisan
+=======
 
 .. image:: https://img.shields.io/travis/SethMichaelLarson/artisan/master.svg
     :target: https://travis-ci.org/SethMichaelLarson/artisan
@@ -21,6 +21,12 @@ About
 -----
 
 Interface and implementation of common worker types for Artisan.
+
+- Generic interface for managing a farm.
+- Easily extensible for custom use-cases.
+- Support for Linux, Mac OS, and Windows.
+- 100% code coverage test suite.
+- High code health rating.
 
 License
 -------
