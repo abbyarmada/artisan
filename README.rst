@@ -20,7 +20,7 @@ Artisan
 About
 -----
 
-Interface and implementation of common worker types for Artisan.
+Artisan is a generalized farm management module for highly customized build and testing pipelines.
 
 - Generic interface for managing a farm.
 - Easily extensible for custom use-cases.
