@@ -27,9 +27,6 @@ class BaseCommand(object):
     def cancelled(self):
         return self._cancelled
 
-    def __iter__(self):
-        raise NotImplementedError()
-
     @property
     def exit_status(self):
         raise NotImplementedError()

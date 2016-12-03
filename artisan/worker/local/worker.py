@@ -9,7 +9,7 @@ from ..getuser import getuser
 if sys.version_info >= (3, 3):
     from .command32 import LocalCommand
 else:
-    from .command import LocalCommand
+    from .command2 import LocalCommand
 
 
 class LocalWorker(BaseWorker):

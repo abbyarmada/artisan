@@ -1,26 +1,16 @@
 """ Worker implementation for Python 3.3+ which
 has access to timeout in Popen.communicate() """
 import subprocess
-from ..abc import (
-    BaseCommand
-)
+from .base_command import BaseLocalCommand
 __all__ = [
     "LocalCommand"
 ]
 
 
-class LocalCommand(BaseCommand):
+class LocalCommand(BaseLocalCommand):
     def __init__(self, worker, command):
         super(LocalCommand, self).__init__(worker, command)
-        self._proc = subprocess.Popen(command,
-                                      shell=True,
-                                      cwd=self.worker.cwd,
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE,
-                                      env=self.worker.environ)
-        self._stdout = b''
-        self._stderr = b''
-        self._exit_status = None
+        self._proc = self._create_subprocess()
 
     def _read_all(self, timeout=0.0):
         with self._lock:
@@ -44,12 +34,6 @@ class LocalCommand(BaseCommand):
         while self._exit_status is None:
             self._read_all(timeout)
 
-    @property
-    def exit_status(self):
-        if self._exit_status is None:
-            self._read_all(0.0)
-        return self._exit_status
-
     def cancel(self):
         with self._lock:
             if self._cancelled:
@@ -57,15 +41,3 @@ class LocalCommand(BaseCommand):
             self._proc.kill()
             self._proc = None
             self._cancelled = True
-
-    @property
-    def stderr(self):
-        if self._exit_status is None:
-            self._read_all(0.0)
-        return self._stderr
-
-    @property
-    def stdout(self):
-        if self._exit_status is None:
-            self._read_all(0.0)
-        return self._stdout

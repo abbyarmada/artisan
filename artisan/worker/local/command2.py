@@ -1,9 +1,8 @@
 """ Worker implementation for Python 2.6+ where
 subprocess.Popen doesn't define timeouts for any
 of it's functions. """
-import subprocess
 import threading
-from ..abc import BaseCommand
+from .base_command import BaseLocalCommand
 from ..compat import monotonic
 
 try:  # Python 3.x
@@ -34,26 +33,16 @@ class _QueueThread(threading.Thread):
             pass
 
 
-class LocalCommand(BaseCommand):
+class LocalCommand(BaseLocalCommand):
     def __init__(self, worker, command):
         super(LocalCommand, self).__init__(worker, command)
-        self._proc = subprocess.Popen(command,
-                                      shell=True,
-                                      cwd=self.worker.cwd,
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE,
-                                      env=self.worker.environ)
-
+        self._proc = self._create_subprocess()
         self._queue_threads = [_QueueThread(self._proc.stdout),
                                _QueueThread(self._proc.stderr)]
         self._queue_stdout = self._queue_threads[0].queue
         self._queue_stderr = self._queue_threads[1].queue
         for thread in self._queue_threads:
             thread.run()
-
-        self._stdout = b''
-        self._stderr = b''
-        self._exit_status = None
 
     def _read_all(self, timeout=0.001):
         with self._lock:
@@ -89,15 +78,6 @@ class LocalCommand(BaseCommand):
             # waits for the process to exit but it's here anyways.
             return self._exit_status, b'', b''  # Skip coverage
 
-    def wait(self, timeout=None):
-        while self._exit_status is None:
-            self._read_all(timeout)
-
-    @property
-    def exit_status(self):
-        self._read_all(0.001)
-        return self._exit_status
-
     def cancel(self):
         with self._lock:
             if self._cancelled:
@@ -111,13 +91,3 @@ class LocalCommand(BaseCommand):
             self._queue_threads = None
             self._proc = None
             self._cancelled = True
-
-    @property
-    def stderr(self):
-        self._read_all(0.001)
-        return self._stderr
-
-    @property
-    def stdout(self):
-        self._read_all(0.001)
-        return self._stdout
