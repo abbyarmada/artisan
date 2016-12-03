@@ -1,0 +1,15 @@
+[run]
+include =
+    artisan_worker/*
+omit =
+    artisan_worker/compat.py
+
+[report]
+exclude_lines =
+    except ImportError:
+    pass
+    import
+    raise
+    .* # Platform-specific.*
+    .*:.* # Python \d.*
+    .* # Skip coverage.*
