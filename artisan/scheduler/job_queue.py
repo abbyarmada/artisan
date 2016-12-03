@@ -107,6 +107,8 @@ class JobQueue(object):
             self._reorganize_queue()
 
     def _reorganize_queue(self):
+        """ Reorganizes the queue of Jobs against the rules
+        that have been added to the JobQueue. """
         with self._lock:
             new_priority = {}
             for job in self._job_queue:
