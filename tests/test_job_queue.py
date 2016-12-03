@@ -1,3 +1,4 @@
+import itertools
 import sys
 from artisan.scheduler import (
     JobQueue,
@@ -48,3 +49,34 @@ class TestJobQueue(unittest.TestCase):
         job = Job()
         queue.push_job(job)
         self.assertIs(queue.pop_job(), job)
+
+    def test_peek_job(self):
+        queue = JobQueue()
+        job = Job()
+        queue.push_job(job)
+        self.assertIs(queue.peek_job(), job)
+        self.assertFalse(queue.empty)
+        self.assertIs(queue.peek_job(), job)
+
+    def test_pop_empty(self):
+        queue = JobQueue()
+        self.assertIs(queue.pop_job(), None)
+        job = Job()
+        queue.push_job(job)
+        self.assertIs(queue.pop_job(), job)
+        self.assertIs(queue.pop_job(), None)
+
+    def test_job_pop_ordering(self):
+        for combo in itertools.permutations([WeightedJob(1), WeightedJob(2), WeightedJob(3)]):
+            queue = JobQueue()
+            queue.add_priority_rule(weight_rule)
+
+            for job in combo:
+                queue.push_job(job)
+
+            job = queue.pop_job()
+            self.assertEqual(job.weight, 3)
+            job = queue.pop_job()
+            self.assertEqual(job.weight, 2)
+            job = queue.pop_job()
+            self.assertEqual(job.weight, 1)

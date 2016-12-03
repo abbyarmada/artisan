@@ -33,22 +33,19 @@ class JobQueue(object):
             priority = 0.0
             for rule in self._priority_rules:
                 priority += rule.get_priority(job)
-            low, high = 0, len(self._job_queue) - 1
-            while low < high:
-                index = low + (high - low) // 2
-                print(low, index, high)
-                index_priority = self._job_priority[index]
-                print(priority, index_priority)
-                if index_priority < priority:
-                    low = index + 1
-                elif index_priority > priority:
-                    high = index - 1
+            job_len = len(self._job_priority)
+            if not job_len:
+                self._job_priority.append(priority)
+                self._job_queue.append(job)
+            else:
+                for i in range(job_len):
+                    if self._job_priority[i] < priority:
+                        self._job_priority.insert(i, priority)
+                        self._job_queue.insert(i, job)
+                        break
                 else:
-                    low = index
-                    break
-
-            self._job_priority.insert(low, priority)
-            self._job_queue.insert(low, job)
+                    self._job_priority.append(priority)
+                    self._job_queue.append(job)
 
     def peek_job(self):
         """ Peeks at but doesn't remove the next
@@ -121,6 +118,6 @@ class JobQueue(object):
             compare_func = functools.cmp_to_key(lambda a, b: _random_cmp(
                                                 new_priority[a],
                                                 new_priority[b]))
-            new_queue = sorted(new_priority, key=compare_func)
+            new_queue = sorted(new_priority.keys(), key=compare_func)
             self._job_queue = new_queue
             self._job_priority = [new_priority[job] for job in self._job_queue]

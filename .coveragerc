@@ -2,7 +2,8 @@
 include =
     artisan/*
 omit =
-    artisan/worker/compat.py
+    artisan/compat.py
+    artisan/worker/ssh
 
 [report]
 exclude_lines =
