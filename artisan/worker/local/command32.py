@@ -1,13 +1,13 @@
 """ Worker implementation for Python 3.3+ which
 has access to timeout in Popen.communicate() """
 import subprocess
-from .base_command import BaseLocalCommand
+from ..abc import BaseCommand
 __all__ = [
     "LocalCommand"
 ]
 
 
-class LocalCommand(BaseLocalCommand):
+class LocalCommand(BaseCommand):
     def __init__(self, worker, command):
         super(LocalCommand, self).__init__(worker, command)
         self._proc = self._create_subprocess()
@@ -15,7 +15,7 @@ class LocalCommand(BaseLocalCommand):
     def _read_all(self, timeout=0.0):
         with self._lock:
             if self._proc is None:
-                return b'', b''
+                return self._exit_status, b'', b''
             try:
                 self._proc.poll()
                 stdout, stderr = self._proc.communicate(timeout=timeout)

@@ -1,5 +1,6 @@
 """ Abstract base class for the Worker interface. """
-from .compat import Lock
+import subprocess
+from ..compat import Lock
 
 __all__ = [
     "BaseCommand",
@@ -11,13 +12,41 @@ class BaseCommand(object):
     def __init__(self, worker, command):
         assert isinstance(worker, BaseWorker)
         self._lock = Lock()
-        self._cancelled = False
         self.worker = worker
         self.command = command
+
+        self._cancelled = False
+        self._stdout = b''
+        self._stderr = b''
+        self._exit_status = None
+
         with self.worker._lock:
             self.worker._commands.append(self)
 
+    def _check_exit(self):
+        if self._exit_status is None:
+            self._read_all(0.0)
+
+    @property
+    def stderr(self):
+        self._check_exit()
+        return self._stderr
+
+    @property
+    def stdout(self):
+        self._check_exit()
+        return self._stdout
+
+    @property
+    def exit_status(self):
+        self._check_exit()
+        return self._exit_status
+
     def wait(self, timeout=None):
+        while self._exit_status is None:
+            self._read_all(timeout)
+
+    def _read_all(self, timeout=0.0):
         raise NotImplementedError()
 
     def cancel(self):
@@ -27,17 +56,13 @@ class BaseCommand(object):
     def cancelled(self):
         return self._cancelled
 
-    @property
-    def exit_status(self):
-        raise NotImplementedError()
-
-    @property
-    def stdout(self):
-        raise NotImplementedError()
-
-    @property
-    def stderr(self):
-        raise NotImplementedError()
+    def _create_subprocess(self):
+        return subprocess.Popen(self.command,
+                                shell=True,
+                                cwd=self.worker.cwd,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                env=self.worker.environ)
 
 
 class BaseWorker(object):
@@ -45,6 +70,7 @@ class BaseWorker(object):
         self._lock = Lock()
         self.user = user
         self.host = host
+        self.environ = {}
         self._pool = None
         self._group = None
         self._commands = []

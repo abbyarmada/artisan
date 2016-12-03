@@ -6,6 +6,10 @@ from .local import (
     LocalCommand,
     LocalWorker
 )
+from .ssh import (
+    SshCommand,
+    SshWorker
+)
 from .pool import WorkerPool
 from .group import WorkerGroup
 

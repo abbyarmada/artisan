@@ -1,4 +1,4 @@
-from .compat import Semaphore, Lock
+from ..compat import Semaphore, Lock
 __all__ = [
     "WorkerPool"
 ]

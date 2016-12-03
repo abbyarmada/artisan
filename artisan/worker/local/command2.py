@@ -2,8 +2,8 @@
 subprocess.Popen doesn't define timeouts for any
 of it's functions. """
 import threading
-from .base_command import BaseLocalCommand
-from ..compat import monotonic
+from ..abc import BaseCommand
+from ...compat import monotonic
 
 try:  # Python 3.x
     from queue import Queue, Empty
@@ -33,7 +33,7 @@ class _QueueThread(threading.Thread):
             pass
 
 
-class LocalCommand(BaseLocalCommand):
+class LocalCommand(BaseCommand):
     def __init__(self, worker, command):
         super(LocalCommand, self).__init__(worker, command)
         self._proc = self._create_subprocess()
