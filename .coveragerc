@@ -1,8 +1,8 @@
 [run]
 include =
-    artisan_worker/*
+    artisan/*
 omit =
-    artisan_worker/compat.py
+    artisan/worker/compat.py
 
 [report]
 exclude_lines =

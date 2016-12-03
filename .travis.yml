@@ -3,11 +3,6 @@ sudo: false
 
 matrix:
   include:
-
-    # Flake8 Style Checking
-    - python: 3.5
-      env: TOXENV=flake8
-
     # Linux Builds
     - python: 2.6
       env: TOXENV=py26
