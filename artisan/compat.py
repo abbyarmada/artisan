@@ -2,7 +2,8 @@ import sys
 __all__ = [
     "monotonic",
     "Lock",
-    "Semaphore"
+    "Semaphore",
+    "cmp_to_key"
 ]
 
 try:
@@ -70,3 +71,36 @@ else:
 
         def release(self):
             self._semaphore.release()
+
+try:
+    from functools import cmp_to_key
+except ImportError:
+    def cmp_to_key(cmp):
+        class K(object):
+            __slots__ = ['obj']
+
+            def __init__(self, obj, *_):
+                self.obj = obj
+
+            def __lt__(self, other):
+                return cmp(self.obj, other.obj) < 0
+
+            def __gt__(self, other):
+                return cmp(self.obj, other.obj) > 0
+
+            def __eq__(self, other):
+                return cmp(self.obj, other.obj) == 0
+
+            def __le__(self, other):
+                return cmp(self.obj, other.obj) <= 0
+
+            def __ge__(self, other):
+                return cmp(self.obj, other.obj) >= 0
+
+            def __ne__(self, other):
+                return cmp(self.obj, other.obj) != 0
+
+            def __hash__(self):
+                raise TypeError('hash not implemented')
+
+        return K

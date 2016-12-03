@@ -1,7 +1,7 @@
-import functools
 import random
 import threading
 from .priority import PriorityRule
+from ..compat import cmp_to_key
 
 __all__ = [
     "JobQueue"
@@ -115,9 +115,9 @@ class JobQueue(object):
                     priority += rule.get_priority(job)
                 new_priority[job] = priority
 
-            compare_func = functools.cmp_to_key(lambda a, b: _random_cmp(
-                                                new_priority[a],
-                                                new_priority[b]))
+            compare_func = cmp_to_key(lambda a, b: _random_cmp(
+                                      new_priority[a],
+                                      new_priority[b]))
             new_queue = sorted(new_priority.keys(), key=compare_func)
             self._job_queue = new_queue
             self._job_priority = [new_priority[job] for job in self._job_queue]
