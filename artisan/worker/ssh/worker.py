@@ -11,7 +11,9 @@ class SshWorker(BaseWorker):
         self._sftp = self._ssh.open_sftp()  # type: paramiko.SFTPClient
 
     def execute(self, command):
-        return SshCommand(self._ssh.invoke_shell(), self, command)
+        command = SshCommand(self._ssh.invoke_shell(), self, command)
+        self._commands.append(command)
+        return command
 
     def close(self):
         super(SshWorker, self).close()

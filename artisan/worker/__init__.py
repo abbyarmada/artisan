@@ -18,6 +18,8 @@ __all__ = [
     "BaseWorker",
     "LocalCommand",
     "LocalWorker",
+    "SshCommand",
+    "SshWorker",
     "WorkerPool",
     "WorkerGroup"
 ]

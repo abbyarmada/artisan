@@ -33,4 +33,6 @@ class LocalWorker(BaseWorker):
         return os.listdir(self._cwd)
 
     def execute(self, command):
-        return LocalCommand(self, command)
+        command = LocalCommand(self, command)
+        self._commands.append(command)
+        return command

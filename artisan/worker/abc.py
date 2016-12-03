@@ -1,7 +1,16 @@
 """ Abstract base class for the Worker interface. """
+import re
+import sys
 import subprocess
 from ..compat import Lock
 
+_PYTHON_BINARIES = ["python",
+                    "python2",
+                    "python3",
+                    "python3.3",
+                    "python3.4",
+                    "python3.5"]
+_PYTHON_REGEX = re.compile(b'^([^(\\s]+)[^\d(]*\\((\\d+), (\\d+), (\\d+),.*$')
 __all__ = [
     "BaseCommand",
     "BaseWorker"
@@ -16,12 +25,9 @@ class BaseCommand(object):
         self.command = command
 
         self._cancelled = False
+        self._exit_status = None
         self._stdout = b''
         self._stderr = b''
-        self._exit_status = None
-
-        with self.worker._lock:
-            self.worker._commands.append(self)
 
     def _check_exit(self):
         if self._exit_status is None:
@@ -71,10 +77,12 @@ class BaseWorker(object):
         self.user = user
         self.host = host
         self.environ = {}
+
         self._pool = None
         self._group = None
         self._commands = []
         self._closed = False
+        self._python_executable = None
 
     def __str__(self):
         return "<Worker user=%s host=%s>" % (self.user, self.host)
@@ -114,3 +122,33 @@ class BaseWorker(object):
                     command.cancel()
                 except ValueError:
                     pass
+
+    @property
+    def python_executable(self):
+        with self._lock:
+            if self._python_executable is None:
+                sys.version_info
+
+    def _find_python_executables(self):
+        """ Finds all Python installations on the
+        Worker that can be accessed from the basic
+        PATH configuration that exists on the Worker. """
+        pythons = {}
+        commands = []
+        with self._lock:
+            for binary in _PYTHON_BINARIES:
+                commands.append(self.execute(("%s -c \"import sys; print(sys.executable,"
+                                              " tuple(sys.version_info))\"" % binary)))
+            for command in commands:
+                assert isinstance(command, BaseCommand)
+                command.wait()
+                print(command.exit_status, command.stdout, command.stderr)
+                if command.exit_status == 0:
+                    match = _PYTHON_REGEX.match(command.stdout)
+                    if match:
+                        path, major, minor, micro = match.groups()
+                        if isinstance(path, bytes):
+                            path = path.decode("utf-8")
+                        pythons[(int(major), int(minor), int(micro))] = path
+
+        return pythons
