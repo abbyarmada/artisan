@@ -155,7 +155,3 @@ class TestLocalWorker(unittest.TestCase):
         expected = sorted(os.listdir("."))
         worker = self.make_worker()
         self.assertEqual(sorted(worker.listdir()), expected)
-
-    def test_find_python(self):
-        worker = self.make_worker()
-        self.assertIn(sys.executable.rstrip("1234567890."), worker._find_python_executables().values())

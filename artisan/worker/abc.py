@@ -122,32 +122,3 @@ class BaseWorker(object):
                     command.cancel()
                 except ValueError:
                     pass
-
-    @property
-    def python_executable(self):
-        with self._lock:
-            if self._python_executable is None:
-                sys.version_info
-
-    def _find_python_executables(self):
-        """ Finds all Python installations on the
-        Worker that can be accessed from the basic
-        PATH configuration that exists on the Worker. """
-        pythons = {}
-        commands = []
-        with self._lock:
-            for binary in _PYTHON_BINARIES:
-                commands.append(self.execute(("%s -c \"import sys; print(sys.executable,"
-                                              " tuple(sys.version_info))\"" % binary)))
-            for command in commands:
-                assert isinstance(command, BaseCommand)
-                command.wait()
-                if command.exit_status == 0:
-                    match = _PYTHON_REGEX.match(command.stdout)
-                    if match:
-                        path, major, minor, micro = match.groups()
-                        if isinstance(path, bytes):
-                            path = path.decode("utf-8")
-                        pythons[(int(major), int(minor), int(micro))] = path
-
-        return pythons
