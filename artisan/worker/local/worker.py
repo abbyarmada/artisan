@@ -1,8 +1,6 @@
 import os
 import sys
-from ..abc import (
-    BaseWorker
-)
+from ..base_worker import BaseWorker
 from ..getuser import getuser
 
 # Use LocalCommand implementation based on Python version.

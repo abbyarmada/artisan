@@ -1,6 +1,6 @@
 import paramiko
 from .command import SshCommand
-from ..abc import BaseWorker
+from ..base_worker import BaseWorker
 
 
 class SshWorker(BaseWorker):

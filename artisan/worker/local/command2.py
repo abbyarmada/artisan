@@ -2,7 +2,7 @@
 subprocess.Popen doesn't define timeouts for any
 of it's functions. """
 import threading
-from ..abc import BaseCommand
+from ..base_command import BaseCommand
 from ...compat import monotonic
 
 try:  # Python 3.x

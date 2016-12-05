@@ -1,7 +1,7 @@
 """ Worker implementation for Python 3.3+ which
 has access to timeout in Popen.communicate() """
 import subprocess
-from ..abc import BaseCommand
+from ..base_command import BaseCommand
 __all__ = [
     "LocalCommand"
 ]

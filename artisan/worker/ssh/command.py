@@ -1,5 +1,5 @@
 import paramiko
-from ..abc import BaseCommand
+from ..base_command import BaseCommand
 from ...compat import monotonic
 
 __all__ = [
