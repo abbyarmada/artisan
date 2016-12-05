@@ -95,7 +95,7 @@ class JobQueue(object):
         """ Removes a rule about how
         the priority of each Job is calculated."""
         with self._lock:
-            for i, other in self._priority_rules:
+            for i, other in enumerate(self._priority_rules):
                 if other is rule:
                     break
             else:
@@ -118,6 +118,6 @@ class JobQueue(object):
             compare_func = cmp_to_key(lambda a, b: _random_cmp(
                                       new_priority[a],
                                       new_priority[b]))
-            new_queue = sorted(new_priority.keys(), key=compare_func)
+            new_queue = sorted(new_priority.keys(), key=compare_func, reverse=True)
             self._job_queue = new_queue
             self._job_priority = [new_priority[job] for job in self._job_queue]

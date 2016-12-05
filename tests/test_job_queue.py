@@ -21,6 +21,10 @@ def weight_rule(job):
     return getattr(job, "weight", 0)
 
 
+def reverse_weight_rule(job):
+    return 1000 - getattr(job, "weight", 0)
+
+
 class TestJobQueue(unittest.TestCase):
     def test_empty_queue_init(self):
         queue = JobQueue()
@@ -80,3 +84,15 @@ class TestJobQueue(unittest.TestCase):
             self.assertEqual(job.weight, 2)
             job = queue.pop_job()
             self.assertEqual(job.weight, 1)
+
+    def test_job_reorder_queue(self):
+        queue = JobQueue()
+        for job in [WeightedJob(1), WeightedJob(2), WeightedJob(3)]:
+            queue.push_job(job)
+
+        rule = queue.add_priority_rule(weight_rule)
+        self.assertEqual(queue.peek_job().weight, 3)
+
+        queue.remove_priority_rule(rule)
+        queue.add_priority_rule(reverse_weight_rule)
+        self.assertEqual(queue.peek_job().weight, 1)

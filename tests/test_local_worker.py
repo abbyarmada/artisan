@@ -158,4 +158,4 @@ class TestLocalWorker(unittest.TestCase):
 
     def test_find_python(self):
         worker = self.make_worker()
-        self.assertIn(sys.executable, worker._find_python_executables().values())
+        self.assertIn(sys.executable.rstrip("1234567890."), worker._find_python_executables().values())

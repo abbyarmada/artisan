@@ -142,7 +142,6 @@ class BaseWorker(object):
             for command in commands:
                 assert isinstance(command, BaseCommand)
                 command.wait()
-                print(command.exit_status, command.stdout, command.stderr)
                 if command.exit_status == 0:
                     match = _PYTHON_REGEX.match(command.stdout)
                     if match:
