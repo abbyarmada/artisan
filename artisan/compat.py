@@ -3,6 +3,7 @@ __all__ = [
     "monotonic",
     "Lock",
     "Semaphore",
+    "RLock",
     "cmp_to_key"
 ]
 
@@ -15,15 +16,15 @@ except ImportError:
         from time import time as monotonic
 
 if sys.version_info >= (3, 0, 0):
-    from threading import Lock, Semaphore
+    from threading import Lock, Semaphore, RLock
 else:
     import threading
 
-    class Lock(object):
+    class _BaseLock(object):
         """ Lock that implements the Python 3.x functionality
         of having the timeout parameter available for acquire. """
-        def __init__(self):
-            self._lock = threading.Lock()
+        def __init__(self, lock):
+            self._lock = lock
 
         def acquire(self, blocking=True, timeout=None):
             if blocking:
@@ -48,6 +49,17 @@ else:
 
         def __exit__(self, *_):
             self._lock.release()
+
+
+    class Lock(_BaseLock):
+        def __init__(self):
+            super(Lock, self).__init__(threading.Lock())
+
+
+    class RLock(_BaseLock):
+        def __init__(self):
+            super(RLock, self).__init__(threading.RLock())
+
 
     class Semaphore(object):
         """ Semaphore that implements the Python 3.x functionality
