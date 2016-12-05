@@ -1,6 +1,5 @@
 """ Abstract base class for the Worker interface. """
 import re
-import sys
 import subprocess
 from ..compat import Lock
 
