@@ -1,5 +1,5 @@
 import threading
-from .abc import BaseWorker
+from .base_worker import BaseWorker
 
 __all__ = [
     "WorkerGroup"

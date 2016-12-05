@@ -1,7 +1,5 @@
-from .abc import (
-    BaseCommand,
-    BaseWorker
-)
+from .base_command import BaseCommand
+from .base_worker import BaseWorker
 from .local import (
     LocalCommand,
     LocalWorker
