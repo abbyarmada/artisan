@@ -48,3 +48,6 @@ class TestLabelExpr(unittest.TestCase):
         self.assertTrue(label_expr.matches(["2"]))
         self.assertTrue(label_expr.matches(["1", "2"]))
         self.assertFalse(label_expr.matches(["3", "4"]))
+
+    def test_no_operator(self):
+        self.assertRaises(ValueError, lambda: LabelExpr(Label("1"), Label("2")))
