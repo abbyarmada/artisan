@@ -50,16 +50,13 @@ else:
         def __exit__(self, *_):
             self._lock.release()
 
-
     class Lock(_BaseLock):
         def __init__(self):
             super(Lock, self).__init__(threading.Lock())
 
-
     class RLock(_BaseLock):
         def __init__(self):
             super(RLock, self).__init__(threading.RLock())
-
 
     class Semaphore(object):
         """ Semaphore that implements the Python 3.x functionality
