@@ -101,7 +101,14 @@ class Label(LabelExpr):
         super(Label, self).__init__(None)
 
     def matches(self, labels):
-        return self.label in labels
+        return self.label in labels or self in labels
 
     def __str__(self):
         return self.label
+
+    def __eq__(self, other):
+        assert isinstance(other, (str, Label))
+        if isinstance(other, str):
+            return self.label == other
+        else:
+            return self.label == other.label
