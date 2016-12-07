@@ -1,0 +1,44 @@
+# List all of the nodes this Artisan CLI can access.
+nodes:
+  NODE_DEFAULTS:
+    labels:
+      - label1
+      - label2
+    max_workers: 10
+  
+  local_node:
+    host: localhost
+
+# Now list all of the jobs that are required.
+jobs:
+  job_name:
+    about: This job will do some helpful stuff.
+    schedule: 0 0 0 * *
+    labels: label1 & label2
+    workers: all
+    locks:
+      - file_lock
+    barriers:
+      - file_barrier
+    commands:
+      - if not worker.isdir("test"):
+        - worker.mkdir("test")
+        - worker.do_a_thing()
+      - elif:
+        - a
+      - elif:
+        - b
+      - elif:
+        - c
+      - worker.put_file(".artisan.yml", "test")
+      - while(worker.test_a_thing()):
+        - worker.sleep(1.0)
+        - with worker.group.acquire_lock('file_lock'):
+          - transferred = worker.transfer_files()
+          - if transferred:
+            - worker.display("Transfer completed!")
+            - break
+      - else:
+        - worker.display("Couldn't transfer files")
+      - worker.group.wait_barrier("file_barrier")
+      - worker.release()
