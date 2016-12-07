@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 from ..base_worker import BaseWorker
 from ..getuser import getuser
 
@@ -29,6 +30,15 @@ class LocalWorker(BaseWorker):
 
     def listdir(self):
         return os.listdir(self._cwd)
+
+    def get_file(self, remote_path, local_path):
+        shutil.move(remote_path, local_path)
+
+    def put_file(self, local_path, remote_path):
+        shutil.move(local_path, remote_path)
+
+    def open(self, path, mode="r"):
+        return open(path, mode)
 
     def execute(self, command):
         command = LocalCommand(self, command)

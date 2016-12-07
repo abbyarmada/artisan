@@ -20,6 +20,13 @@ def _safe_close(worker):
         pass
 
 
+def _safe_remove(path):
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+
+
 class TestLocalWorker(unittest.TestCase):
     def make_worker(self):
         worker = LocalWorker()
@@ -155,3 +162,52 @@ class TestLocalWorker(unittest.TestCase):
         expected = sorted(os.listdir("."))
         worker = self.make_worker()
         self.assertEqual(sorted(worker.listdir()), expected)
+
+    def test_open_file(self):
+        worker = self.make_worker()
+        self.addCleanup(_safe_remove, "tmp")
+        _safe_remove("tmp")
+        with worker.open("tmp", mode="w") as f:
+            f.write("Hello, world!")
+        with worker.open("tmp", mode="r") as f:
+            self.assertEqual(f.read(), "Hello, world!")
+
+    def test_put_file(self):
+        worker = self.make_worker()
+        self.addCleanup(_safe_remove, "tmp1")
+        self.addCleanup(_safe_remove, "tmp2")
+        _safe_remove("tmp1")
+        _safe_remove("tmp2")
+        with worker.open("tmp1", mode="w") as f:
+            f.write("put")
+
+        self.assertTrue(os.path.isfile("tmp1"))
+        self.assertFalse(os.path.isfile("tmp2"))
+
+        worker.put_file("tmp1", "tmp2")
+
+        self.assertFalse(os.path.isfile("tmp1"))
+        self.assertTrue(os.path.isfile("tmp2"))
+
+        with worker.open("tmp2", mode="r") as f:
+            self.assertEqual(f.read(), "put")
+
+    def test_get_file(self):
+        worker = self.make_worker()
+        self.addCleanup(_safe_remove, "tmp1")
+        self.addCleanup(_safe_remove, "tmp2")
+        _safe_remove("tmp1")
+        _safe_remove("tmp2")
+        with worker.open("tmp1", mode="w") as f:
+            f.write("get")
+
+        self.assertTrue(os.path.isfile("tmp1"))
+        self.assertFalse(os.path.isfile("tmp2"))
+
+        worker.get_file("tmp1", "tmp2")
+
+        self.assertFalse(os.path.isfile("tmp1"))
+        self.assertTrue(os.path.isfile("tmp2"))
+
+        with worker.open("tmp2", mode="r") as f:
+            self.assertEqual(f.read(), "get")

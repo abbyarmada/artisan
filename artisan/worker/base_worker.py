@@ -42,6 +42,15 @@ class BaseWorker(object):
     def chdir(self, path):
         raise NotImplementedError()
 
+    def get_file(self, remote_path, local_path):
+        raise NotImplementedError()
+
+    def put_file(self, local_path, remote_path):
+        raise NotImplementedError()
+
+    def open(self, path, mode="r"):
+        raise NotImplementedError()
+
     @property
     def closed(self):
         return self._closed
