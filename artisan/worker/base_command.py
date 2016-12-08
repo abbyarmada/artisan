@@ -1,6 +1,6 @@
 import subprocess
 from .base_worker import BaseWorker
-from ..compat import Lock
+from ..compat import Lock, monotonic
 
 __all__ = [
     "BaseCommand"
@@ -20,7 +20,7 @@ class BaseCommand(object):
         self._stderr = b''
 
     def _check_exit(self):
-        if self._exit_status is None:
+        if self._is_not_complete():
             self._read_all(0.0)
 
     @property
@@ -39,8 +39,18 @@ class BaseCommand(object):
         return self._exit_status
 
     def wait(self, timeout=None):
-        while self._exit_status is None:
-            self._read_all(timeout)
+        start_time = monotonic()
+        read_timeout = timeout
+        while self._is_not_complete():
+            self._read_all(read_timeout)
+            if timeout is not None:
+                current_time = monotonic()
+                if current_time - start_time > timeout:
+                    break
+                read_timeout = max(0.0, (start_time + timeout) - current_time)
+
+    def _is_not_complete(self):
+        return self._exit_status is None
 
     def _read_all(self, timeout=0.0):
         raise NotImplementedError()

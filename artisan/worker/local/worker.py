@@ -6,7 +6,7 @@ from ..getuser import getuser
 
 # Use LocalCommand implementation based on Python version.
 if sys.version_info >= (3, 3):
-    from .command32 import LocalCommand
+    from .command33 import LocalCommand
 else:
     from .command2 import LocalCommand
 

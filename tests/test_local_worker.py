@@ -37,14 +37,24 @@ class TestLocalWorker(unittest.TestCase):
         worker = self.make_worker()
         self.assertIsInstance(worker.execute('Hello'), LocalCommand)
 
+    def test_execute_async(self):
+        worker = self.make_worker()
+        start_time = monotonic()
+        worker.execute("sleep 1")
+        end_time = monotonic()
+        self.assertLess(end_time - start_time, 1.0)
+
     def test_execute_multiple(self):
         commands = []
         worker = self.make_worker()
         start_time = monotonic()
-        commands.append(worker.execute("sleep 1"))
+        for _ in range(10):
+            commands.append(worker.execute("sleep 1"))
         for command in commands:
-            command.wait(timeout=2.0)
+            command.wait(timeout=1.0)
         end_time = monotonic()
+        for command in commands:
+            self.assertEqual(command.exit_status, 0)
         self.assertLessEqual(end_time - start_time, 10.0)
 
     def test_stdout(self):
@@ -77,6 +87,16 @@ class TestLocalWorker(unittest.TestCase):
         command = worker.execute(sys.executable + " -c \"import sys, time; time.sleep(0.3); sys.exit(2)\"")
         self.assertEqual(command.exit_status, None)
         time.sleep(1.0)
+        self.assertEqual(command.exit_status, 2)
+
+    @unittest.skipIf(sys.version_info <= (3, 0, 0), ("subprocess.Popen.poll() waits until"
+                                                     "process is complete on Python 2.x"))
+    def test_wait_timeout(self):
+        worker = self.make_worker()
+        command = worker.execute(sys.executable + " -c \"import sys, time; time.sleep(0.5); sys.exit(2)\"")
+        command.wait(0.1)
+        self.assertIs(command.exit_status, None)
+        command.wait(0.5)
         self.assertEqual(command.exit_status, 2)
 
     def test_cancel_command(self):

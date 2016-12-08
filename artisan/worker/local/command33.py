@@ -30,10 +30,6 @@ class LocalCommand(BaseCommand):
                 self._stderr += stderr
             return self._exit_status, stdout, stderr
 
-    def wait(self, timeout=None):
-        while self._exit_status is None:
-            self._read_all(timeout)
-
     def cancel(self):
         with self._lock:
             if self._cancelled:
