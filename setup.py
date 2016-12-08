@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.rst") as f:
     long_description = f.read()
@@ -16,14 +16,20 @@ if __name__ == "__main__":
         author_email="sethmichaellarson@protonmail.com",
         maintainer="Seth Michael Larson",
         maintainer_email="sethmichaellarson@protonmail.com",
-        install_requires=["monotonic==1.2",
-                          "paramiko==2.0.2"],
+        install_requires=find_packages("artisan"),
         keywords=[],
         packages=["artisan",
                   "artisan.worker",
-                  "artisan.worker.local"],
+                  "artisan.worker.local",
+                  "artisan.worker.ssh"],
         zip_safe=False,
-        classifiers=["Programming Language :: Python :: 2",
+        classifiers=["Development Status :: 2 - Pre-Alpha",
+                     "Environment :: Console",
+                     "Intended Audience :: Developers",
+                     "License :: OSI Approved :: MIT License",
+                     "Natural Language :: English",
+                     "Operating System :: OS Independent",
+                     "Programming Language :: Python :: 2",
                      "Programming Language :: Python :: 2.6",
                      "Programming Language :: Python :: 2.7",
                      "Programming Language :: Python :: 3",
@@ -31,5 +37,9 @@ if __name__ == "__main__":
                      "Programming Language :: Python :: 3.4",
                      "Programming Language :: Python :: 3.5",
                      "Programming Language :: Python :: 3.6",
-                     "License :: OSI Approved :: MIT License"]
+                     "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+                     "Topic :: System :: Clustering",
+                     "Topic :: System :: Distributed Computing",
+                     "Topic :: System :: Monitoring",
+                     "Topic :: System :: Systems Administration"]
     )
