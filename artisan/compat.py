@@ -4,7 +4,8 @@ __all__ = [
     "Lock",
     "Semaphore",
     "RLock",
-    "cmp_to_key"
+    "cmp_to_key",
+    "Enum"
 ]
 
 try:
@@ -113,3 +114,8 @@ except ImportError:
                 raise TypeError('hash not implemented')
 
         return K
+
+if sys.version_info >= (3, 4):
+    from enum import Enum
+else:
+    from enum34 import Enum

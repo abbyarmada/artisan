@@ -1,12 +1,22 @@
 import threading
+from ..compat import Enum
 __all__ = [
-    "Job"
+    "Job",
+    "JobStatus"
 ]
+
+
+class JobStatus(Enum):
+    SCHEDULED = 'Scheduled'
+    ACTIVE = 'Active'
+    SUCCESS = 'Success'
+    UNSTABLE = 'Unstable'
+    FAILURE = 'Failure'
 
 
 class Job(object):
     def __init__(self):
-        self._status = "ACTIVE"
+        self._status = JobStatus.SCHEDULED
         self._lock = threading.Lock()
 
     @property
