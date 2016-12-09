@@ -42,6 +42,9 @@ class BaseWorker(object):
     def chdir(self, path):
         raise NotImplementedError()
 
+    def listdir(self, path="."):
+        raise NotImplementedError()
+
     def get_file(self, remote_path, local_path):
         raise NotImplementedError()
 
