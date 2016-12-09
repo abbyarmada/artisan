@@ -1,8 +1,8 @@
-import sys
 from setuptools import setup
 
 with open("README.rst") as f:
     long_description = f.read()
+
 
 if __name__ == "__main__":
     setup(
@@ -21,7 +21,15 @@ if __name__ == "__main__":
                           "enum34==1.1.6",
                           "monotonic==1.2",
                           "paramiko==2.0.2"],
-        keywords=[],
+        keywords=["artisan",
+                  "farm",
+                  "worker",
+                  "ssh",
+                  "automation",
+                  "cli",
+                  "auto",
+                  "distributed",
+                  "computing"],
         packages=["artisan",
                   "artisan.scheduler",
                   "artisan.worker",

@@ -1,0 +1,15 @@
+{
+  "maxReviewers": 3,
+  "numFilesToCheck": 10,
+  "message": "@pullRequester, thanks! @reviewers, please review this.",
+  "findPotentialReviewers": true,
+  "fileBlacklist": ["*.md"],
+  "userBlacklist": [],
+  "userBlacklistForPR": [],
+  "requiredOrgs": [],
+  "actions": ["opened"],
+  "skipAlreadyAssignedPR": false,
+  "skipAlreadyMentionedPR": false,
+  "assignToReviewer": true,
+  "delayed": false
+}
