@@ -1,7 +1,7 @@
 {
   "maxReviewers": 3,
   "numFilesToCheck": 10,
-  "message": "@pullRequester, thanks! @reviewers, please review this.",
+  "message": "Thanks @pullRequester for the Pull Request! Reviewers will respond shortly. I've identified @reviewers as potential reviewers.",
   "findPotentialReviewers": true,
   "fileBlacklist": ["*.md"],
   "userBlacklist": [],

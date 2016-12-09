@@ -1,12 +1,12 @@
+import enum
 import threading
-from ..compat import Enum
 __all__ = [
     "Job",
     "JobStatus"
 ]
 
 
-class JobStatus(Enum):
+class JobStatus(enum.Enum):
     SCHEDULED = 'Scheduled'
     ACTIVE = 'Active'
     SUCCESS = 'Success'
