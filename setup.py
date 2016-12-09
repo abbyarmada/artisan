@@ -20,7 +20,7 @@ if __name__ == "__main__":
         install_requires=["colorama==0.3.7",
                           "enum34==1.1.6",
                           "monotonic==1.2",
-                          "paramiko==2.0.2"],
+                          "paramiko==2.1.0"],
         keywords=["artisan",
                   "farm",
                   "worker",
