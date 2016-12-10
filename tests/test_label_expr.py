@@ -70,12 +70,3 @@ class TestLabelExpr(unittest.TestCase):
 
         for label_expr in data:
             self.assertTrue(label_expr == label_expr)
-
-    def test_string_to_label_expr(self):
-        data = [("abc",                 Label("abc")),
-                ("abc | def",           Label("abc") | Label("def")),
-                ("~abc | ~def",         ~Label("abc") | ~Label("def")),
-                ("abc | (def & ~ghi)",  Label("abc") | (Label("def") & ~Label("ghi")))]
-
-        for input, expected in data:
-            self.assertEqual(string_to_label_expr(input), expected)

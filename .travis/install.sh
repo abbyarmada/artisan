@@ -4,7 +4,7 @@ set -e
 set -x
 
 if [[ "$(uname -s)" == 'Darwin' ]]; then
-    # install pyenv
+    # Install PyEnv
     git clone --depth 1 https://github.com/yyuu/pyenv.git ~/.pyenv
     PYENV_ROOT="$HOME/.pyenv"
     PATH="$PYENV_ROOT/bin:$PATH"
