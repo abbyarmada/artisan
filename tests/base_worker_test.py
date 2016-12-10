@@ -192,6 +192,13 @@ class _BaseWorkerTestCase(object):
         with worker.open("tmp", mode="r") as f:
             self.assertEqual(f.read(), "Hello, world!")
 
+    def test_changing_cwd(self):
+        worker = self.make_worker()
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir("..")
+        self.assertEqual(worker.cwd, cwd)
+
     def test_put_file(self):
         worker = self.make_worker()
         self.addCleanup(_safe_remove, "tmp1")
@@ -231,3 +238,29 @@ class _BaseWorkerTestCase(object):
 
         with worker.open("tmp2", mode="r") as f:
             self.assertEqual(f.read(), "get")
+
+    def test_stat(self):
+        worker = self.make_worker()
+        self.addCleanup(_safe_remove, "tmp1")
+        _safe_remove("tmp1")
+
+        with worker.open("tmp1", mode="w") as f:
+            f.write("Hello, world!")
+
+        file_attrs = worker.stat("tmp1", follow_symlinks=False)
+        self.assertEqual(file_attrs.st_size, 13)
+
+    @unittest.skipIf(sys.platform == "win32", "Windows doesn't implement symbolic links.")
+    def test_stat_follow_symlinks(self):
+        worker = self.make_worker()
+        self.addCleanup(_safe_remove, "tmp1")
+        self.addCleanup(_safe_remove, "tmp2")
+        _safe_remove("tmp1")
+        _safe_remove("tmp2")
+
+        with worker.open("tmp2", mode="w") as f:
+            f.write("Hello, world!")
+        os.symlink("tmp2", "tmp1")
+
+        file_attrs = worker.stat("tmp1")
+        self.assertEqual(file_attrs.st_size, 13)
