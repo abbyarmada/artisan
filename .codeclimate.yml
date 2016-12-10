@@ -4,6 +4,9 @@ engines:
     config:
       threshold: "C"
 
+  duplication:
+    enabled: true
+
 ratings:
   paths:
     - "**.py"
