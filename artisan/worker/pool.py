@@ -5,12 +5,12 @@ __all__ = [
 
 
 class WorkerPool(object):
-    def __init__(self, max_workers, worker_factory, *args, **kwargs):
+    def __init__(self, max_workers, factory, *args, **kwargs):
         self._lock = Lock()
         self._semaphore = Semaphore(max_workers)
         self._pool = []
         self._max_workers = max_workers
-        self._worker_factory = worker_factory
+        self._factory = factory
         self._args = args
         self._kwargs = kwargs
         self._setup_steps = []
@@ -38,7 +38,7 @@ class WorkerPool(object):
         """ Creates a new worker from the
         factory method. """
         with self._lock:
-            worker = self._worker_factory(*self._args, **self._kwargs)
+            worker = self._factory(*self._args, **self._kwargs)
             self._pool.append(worker)
             return worker
 

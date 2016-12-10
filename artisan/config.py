@@ -1,5 +1,4 @@
 import os
-import yaml
 
 
 class ArtisanYaml(object):
@@ -8,16 +7,6 @@ class ArtisanYaml(object):
         self.jobs = {}
         self.path = path
         self._last_mtime = os.stat(path).st_mtime
-        self.reload_yaml()
-
-    def reload_yaml(self):
-        """ Reloads the .artisan.yml file
-        into this configuration object and
-        returns the entities that are changed. """
-        with open(self.path, mode="r") as f:
-            raw_yaml = yaml.load(f.read())
-            pools = raw_yaml.get("pools", {})
-            jobs = raw_yaml.get("jobs", {})
 
     def _check_last_mtime(self):
         try:

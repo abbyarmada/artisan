@@ -28,8 +28,8 @@ class LocalWorker(BaseWorker):
     def cwd(self):
         return self._cwd
 
-    def listdir(self):
-        return os.listdir(self._cwd)
+    def listdir(self, path="."):
+        return os.listdir(path)
 
     def get_file(self, remote_path, local_path):
         shutil.move(remote_path, local_path)

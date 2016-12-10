@@ -11,12 +11,9 @@ class BaseWorker(object):
         self.user = user
         self.host = host
         self.environ = {}
-
         self._pool = None
-        self._group = None
         self._commands = []
         self._closed = False
-        self._python_executable = None
 
     def __str__(self):
         return "<Worker user=%s host=%s>" % (self.user, self.host)
@@ -30,10 +27,6 @@ class BaseWorker(object):
     @property
     def pool(self):
         return self._pool
-
-    @property
-    def group(self):
-        return self._group
 
     @property
     def cwd(self):

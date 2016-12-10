@@ -1,10 +1,28 @@
 import sys
+import time
+import threading
 from artisan.worker import LocalWorker, WorkerGroup
 
 if sys.version_info >= (2, 7):
     import unittest
 else:
     import unittest2 as unittest
+try:
+    from time import monotonic
+except ImportError:
+    from time import time as monotonic
+
+
+class WorkerThread(threading.Thread):
+    def __init__(self, worker, func, *args, **kwargs):
+        super(WorkerThread, self).__init__()
+        self._worker = worker
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+
+    def run(self):
+        self._func(self._worker, *self._args, **self._kwargs)
 
 
 def _safe_close(worker):
@@ -23,10 +41,8 @@ class TestWorkerGroup(unittest.TestCase):
     def test_worker_group_property(self):
         worker = self.make_worker()
         group = WorkerGroup()
-        self.assertIs(worker.group, None)
         self.assertNotIn(worker, group.workers)
         group.add_worker(worker)
-        self.assertIs(worker.group, group)
         self.assertIn(worker, group.workers)
 
     def test_group_add_non_worker(self):
@@ -39,21 +55,12 @@ class TestWorkerGroup(unittest.TestCase):
         group.add_worker(worker)
         self.assertRaises(ValueError, group.add_worker, worker)
 
-    def test_group_worker_already_in_group(self):
-        worker = self.make_worker()
-        group1 = WorkerGroup()
-        group2 = WorkerGroup()
-        group1.add_worker(worker)
-        self.assertRaises(ValueError, group2.add_worker, worker)
-
     def test_group_remove_worker(self):
         worker = self.make_worker()
         group = WorkerGroup()
         group.add_worker(worker)
-        self.assertIs(worker.group, group)
         self.assertIn(worker, group.workers)
         group.remove_worker(worker)
-        self.assertIs(worker.group, None)
         self.assertNotIn(worker, group.workers)
 
     def test_remove_worker_not_in_group(self):
@@ -61,7 +68,39 @@ class TestWorkerGroup(unittest.TestCase):
         group = WorkerGroup()
         self.assertRaises(ValueError, group.remove_worker, worker)
         group.add_worker(worker)
-        self.assertIs(worker.group, group)
         self.assertIn(worker, group.workers)
         group.remove_worker(worker)
         self.assertRaises(ValueError, group.remove_worker, worker)
+
+    def test_lock_timing(self):
+        group = WorkerGroup()
+        workers = [self.make_worker() for _ in range(5)]
+        for worker in workers:
+            group.add_worker(worker)
+        group.create_lock("test")
+        times = []
+
+        def acquire_lock_with_timing(_):
+            group.acquire_lock("test")
+            start_time = monotonic()
+            time.sleep(0.1)
+            end_time = monotonic()
+            times.append((start_time, end_time))
+            group.release_lock("test")
+
+        threads = []
+        for worker in workers:
+            thread = WorkerThread(worker, acquire_lock_with_timing)
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        for i, (start1, end1) in enumerate(times):
+            for j, (start2, end2) in enumerate(times):
+                if i == j:
+                    continue
+                self.assertFalse(start1 < start2 < end1)
+                self.assertFalse(start2 < start1 < end2)
+                self.assertFalse(start1 < end2 < end1)
+                self.assertFalse(start2 < end1 < end2)

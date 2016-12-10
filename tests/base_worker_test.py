@@ -48,9 +48,9 @@ class _BaseWorkerTestCase(object):
         worker = self.make_worker()
         start_time = monotonic()
         for _ in range(3):
-            commands.append(worker.execute("sleep 1"))
+            commands.append(worker.execute(sys.executable + " -c \"import time; time.sleep(1.0)\""))
         for command in commands:
-            command.wait(timeout=1.0)
+            command.wait(timeout=1.5)
         end_time = monotonic()
         for command in commands:
             self.assertEqual(command.exit_status, 0)
@@ -76,7 +76,7 @@ class _BaseWorkerTestCase(object):
         worker = self.make_worker()
         for exit_status in range(10):
             command = worker.execute(sys.executable + " -c \"import sys; sys.exit(%s)\"" % str(exit_status))
-            command.wait(0.1)
+            command.wait(1.0)
             self.assertEqual(command.exit_status, exit_status)
 
     @unittest.skipIf(sys.version_info <= (3, 0, 0), ("subprocess.Popen.poll() waits until"
