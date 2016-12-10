@@ -7,17 +7,17 @@ with open("README.rst") as f:
 if __name__ == "__main__":
     setup(
         name="artisan",
-        description=("Generalized farm management module for highly"
-                     " customized build and testing pipelines."),
+        description=("Providing a platform-agnostic interface for automation, "
+                     "continuous integration, and farm management. "),
         long_description=long_description,
         license="MIT",
         url="https://www.github.com/SethMichaelLarson/artisan",
-        version="0.1",
+        version="0.0.1",
         author="Seth Michael Larson",
         author_email="sethmichaellarson@protonmail.com",
         maintainer="Seth Michael Larson",
         maintainer_email="sethmichaellarson@protonmail.com",
-        install_requires=["colorama==0.3.7",
+        install_requires=["arrow==0.10.0",
                           "enum34==1.1.6",
                           "monotonic==1.2",
                           "paramiko==2.1.0"],
