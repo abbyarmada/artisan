@@ -20,6 +20,22 @@ if sys.version_info >= (3, 0, 0):
 else:
     import threading
 
+    def _timeout_acquire(acquired, blocking=True, timeout=None):
+        """ Helper function for acquiring a Semaphore or Lock
+        object that doesn't have a `timeout` parameter. """
+        if blocking:
+            if timeout is None:
+                return acquired.acquire(blocking=True)
+            else:
+                start_time = monotonic()
+                while True:
+                    if acquired.acquire(blocking=False):
+                        return True
+                    if monotonic() - start_time > timeout:
+                        return False
+        else:
+            return acquired.acquire(blocking=False)
+
     class _BaseLock(object):
         """ Lock that implements the Python 3.x functionality
         of having the timeout parameter available for acquire. """
@@ -27,18 +43,7 @@ else:
             self._lock = lock
 
         def acquire(self, blocking=True, timeout=None):
-            if blocking:
-                if timeout is None:
-                    return self._lock.acquire(blocking=True)
-                else:
-                    start_time = monotonic()
-                    while True:
-                        if self._lock.acquire(blocking=False):
-                            return True
-                        if monotonic() - start_time > timeout:
-                            return False
-            else:
-                return self._lock.acquire(blocking=False)
+            return _timeout_acquire(self._lock, blocking, timeout)
 
         def release(self):
             self._lock.release()
@@ -65,18 +70,7 @@ else:
             self._semaphore = threading.Semaphore(value)
 
         def acquire(self, blocking=True, timeout=None):
-            if blocking:
-                if timeout is None:
-                    return self._semaphore.acquire(blocking=True)
-                else:
-                    start_time = monotonic()
-                    while True:
-                        if self._semaphore.acquire(blocking=False):
-                            return True
-                        if monotonic() - start_time > timeout:
-                            return False
-            else:
-                return self._semaphore.acquire(blocking=False)
+            return _timeout_acquire(self._semaphore, blocking, timeout)
 
         def release(self):
             self._semaphore.release()
