@@ -1,10 +1,10 @@
 import sys
+from artisan.scheduler import Label, LabelExpr, string_to_label_expr
+
 if sys.version_info >= (2, 7):
     import unittest
 else:
     import unittest2 as unittest
-
-from artisan.scheduler import Label, LabelExpr
 
 
 class TestLabelExpr(unittest.TestCase):
@@ -58,4 +58,24 @@ class TestLabelExpr(unittest.TestCase):
 
     def test_label_matches(self):
         label_expr = (Label("1") | Label("2"))
-        self.assertTrue(label_expr.matches([Label("1")]))
+        self.assertTrue(label_expr.matches([Label("0"), Label("1")]))
+        self.assertFalse(label_expr.matches([Label("0"), Label("3")]))
+
+    def test_label_expr_equal(self):
+        data = [Label("abc"),
+                ~Label("abc"),
+                Label("abc") | Label("def"),
+                Label("abc") & Label("def"),
+                Label("abc") | (Label("def") & ~Label("ghi"))]
+
+        for label_expr in data:
+            self.assertTrue(label_expr == label_expr)
+
+    def test_string_to_label_expr(self):
+        data = [("abc",                 Label("abc")),
+                ("abc | def",           Label("abc") | Label("def")),
+                ("~abc | ~def",         ~Label("abc") | ~Label("def")),
+                ("abc | (def & ~ghi)",  Label("abc") | (Label("def") & ~Label("ghi")))]
+
+        for input, expected in data:
+            self.assertEqual(string_to_label_expr(input), expected)

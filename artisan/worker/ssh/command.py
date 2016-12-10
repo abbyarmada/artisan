@@ -11,9 +11,8 @@ class SshCommand(BaseCommand):
     def __init__(self, client, worker, command):
         assert isinstance(client, paramiko.SSHClient)
         super(SshCommand, self).__init__(worker, command)
-        command = " ".join(["export %s=%s;" % (key, val) for key, val in
-                            worker.environ.items()] + [command])
-        _, stdout_file, _ = client.exec_command(command)
+        _, stdout_file, _ = client.exec_command(command,
+                                                environment=worker.environ)
         self._channel = stdout_file.channel
 
     def _read_all(self, timeout=0.0):

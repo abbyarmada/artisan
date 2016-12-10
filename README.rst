@@ -10,8 +10,8 @@ Artisan
     :target: https://codecov.io/gh/SethMichaelLarson/artisan
 .. image:: https://img.shields.io/codeclimate/github/SethMichaelLarson/artisan.svg
     :target: https://codeclimate.com/github/SethMichaelLarson/artisan
-.. image:: https://img.shields.io/requires/github/SethMichaelLarson/artisan.svg
-    :target: https://requires.io/github/SethMichaelLarson/artisan/requirements/?branch=master
+.. image:: https://pyup.io/repos/github/sethmichaellarson/artisan/shield.svg
+     :target: https://pyup.io/repos/github/sethmichaellarson/artisan
 .. image:: https://img.shields.io/pypi/v/artisan.svg
     :target: https://pypi.python.org/pypi/artisan
 .. image:: https://img.shields.io/badge/say-thanks-ff69b4.svg

@@ -3,6 +3,7 @@ from setuptools import setup
 with open("README.rst") as f:
     long_description = f.read()
 
+
 if __name__ == "__main__":
     setup(
         name="artisan",
@@ -17,9 +18,18 @@ if __name__ == "__main__":
         maintainer="Seth Michael Larson",
         maintainer_email="sethmichaellarson@protonmail.com",
         install_requires=["colorama==0.3.7",
+                          "enum34==1.1.6",
                           "monotonic==1.2",
-                          "paramiko==2.0.2"],
-        keywords=[],
+                          "paramiko==2.1.0"],
+        keywords=["artisan",
+                  "farm",
+                  "worker",
+                  "ssh",
+                  "automation",
+                  "cli",
+                  "auto",
+                  "distributed",
+                  "computing"],
         packages=["artisan",
                   "artisan.scheduler",
                   "artisan.worker",

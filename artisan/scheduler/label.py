@@ -1,7 +1,11 @@
+import re
 __all__ = [
     "Label",
-    "LabelExpr"
+    "LabelExpr",
+    "string_to_label_expr"
 ]
+
+_LABEL_REGEX = re.compile(r"([^'\[\]\(\)&\|~\s]+)")
 
 
 class _LabelExprOperator(object):
@@ -10,6 +14,11 @@ class _LabelExprOperator(object):
 
     def __str__(self):
         return " %s " % self.string
+
+    def __eq__(self, other):
+        if not isinstance(other, _LabelExprOperator):
+            return False
+        return self.string == other.string
 
     def apply(self, left, right=None):
         raise NotImplementedError()
@@ -49,6 +58,18 @@ class LabelExpr(object):
         self.left_label = left_label
         self.right_label = right_label
         self.operator = operator
+
+    def __eq__(self, other):
+        if not isinstance(other, LabelExpr):
+            return False
+        for attr in ["operator", "left_label", "right_label"]:
+            self_attr = getattr(self, attr)
+            other_attr = getattr(other, attr)
+            if bool(self_attr) != bool(other_attr):
+                return False
+            if self_attr and self_attr != other_attr:
+                return False
+        return True
 
     def matches(self, labels):
         if isinstance(self.left_label, LabelExpr):
@@ -112,3 +133,12 @@ class Label(LabelExpr):
             return self.label == other
         else:
             return self.label == other.label
+
+
+def string_to_label_expr(string):
+    """ Given a string that is most likely user-generated,
+    convert that string into an actual LabelExpr value.
+    Make sure to sanitize the values by not allowing `'`
+    characters to escape the string. All non-bool logic
+    characters become a label. """
+    return eval(_LABEL_REGEX.sub(r"Label('\1')", string))
