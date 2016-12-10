@@ -46,8 +46,8 @@ class LocalWorker(BaseWorker):
                     self._normalize_path(local_path))
 
     def put_file(self, local_path, remote_path):
-        shutil.move(self._normalize_path(remote_path),
-                    self._normalize_path(local_path))
+        shutil.move(self._normalize_path(local_path),
+                    self._normalize_path(remote_path))
 
     def stat(self, path, follow_symlinks=True):
         if follow_symlinks:
