@@ -1,8 +1,24 @@
+""" Interface for the Worker class that must
+be implemented by all Worker implementations. """
+from collections import namedtuple
 from ..compat import Lock
 
 __all__ = [
-    "BaseWorker"
+    "BaseWorker",
+    "FileAttributes"
 ]
+
+
+FileAttributes = namedtuple("FileAttributes", ["st_mode",
+                                               "st_ino",
+                                               "st_dev",
+                                               "st_nlink",
+                                               "st_uid",
+                                               "st_gid",
+                                               "st_size",
+                                               "st_atime",
+                                               "st_mtime",
+                                               "st_ctime"])
 
 
 class BaseWorker(object):
@@ -11,6 +27,7 @@ class BaseWorker(object):
         self.user = user
         self.host = host
         self.environ = {}
+
         self._pool = None
         self._commands = []
         self._closed = False
@@ -42,6 +59,9 @@ class BaseWorker(object):
         raise NotImplementedError()
 
     def put_file(self, local_path, remote_path):
+        raise NotImplementedError()
+
+    def stat(self, path, follow_symlinks=True):
         raise NotImplementedError()
 
     def open(self, path, mode="r"):

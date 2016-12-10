@@ -3,6 +3,11 @@ sudo: false
 
 matrix:
   include:
+
+    # Flake8 Linter
+    - python: 3.5
+      env: TOXENV=flake8
+
     # Linux Builds
     - python: 2.6
       env: TOXENV=py26
@@ -41,11 +46,8 @@ cache:
   - directories:
     - ${HOME}/.cache
 
-before_install:
-  - openssl version
-
 install:
-  - chmod a+x ./.travis/install.sh ./.travis/run.sh
+  - chmod a+x ./.travis/install.sh ./.travis/run.sh ./.travis/upload_coverage.sh
   - ./.travis/install.sh
 
 script:
@@ -56,3 +58,7 @@ after_success:
 
 notifications:
   email: false
+
+branches:
+  only:
+  - master
