@@ -30,6 +30,7 @@ class BaseWorker(object):
         self.host = host
         self.environ = {}
 
+        self._dist_info = None
         self._tempdir = None
         self._python_version = None
         self._python_executable = None
@@ -88,8 +89,7 @@ class BaseWorker(object):
         return self._tempdir
 
     def execute_python(self, code):
-        return self.execute("%s -c \"%s\"" % (self.python_executable,
-                                              code))
+        return self.execute("%s -c \"%s\"" % (self.python_executable, code.replace("\n", "\\n")))
 
     @property
     def python_version(self):
