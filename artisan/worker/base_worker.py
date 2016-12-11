@@ -1,12 +1,13 @@
 """ Interface for the Worker class that must
 be implemented by all Worker implementations. """
+import re
 from collections import namedtuple
 from ..compat import Lock
-
 __all__ = [
     "BaseWorker",
     "FileAttributes"
 ]
+_VERSION_INFO_REGEX = re.compile(b'^\((\d+), (\d+), (\d+).*$')
 
 
 FileAttributes = namedtuple("FileAttributes", ["st_mode",
@@ -28,6 +29,8 @@ class BaseWorker(object):
         self.host = host
         self.environ = {}
 
+        self._python_version = None
+        self._python_executable = None
         self._pool = None
         self._commands = []
         self._closed = False
@@ -66,6 +69,49 @@ class BaseWorker(object):
 
     def open(self, path, mode="r"):
         raise NotImplementedError()
+
+    def execute_python(self, code):
+        return self.execute("%s -c \"%s\"" % (self.python_executable,
+                                              code))
+
+    @property
+    def python_version(self):
+        if self._python_version is None:
+            with self._lock:
+                if self._python_version is None:
+                    version_code = "import sys; print(tuple(sys.version_info))"
+                    command = self.execute_python(version_code)
+                    command.wait(1.0)
+                    match = _VERSION_INFO_REGEX.match(command.stdout)
+                    if match:
+                        self._python_version = tuple(int(x) for x in match.groups())
+        return self._python_version
+
+    @property
+    def python_executable(self):
+        if self._python_executable is None:
+            with self._lock:
+                self._find_python_executable()
+        return self._python_executable
+
+    def _find_python_executable(self):
+        if self._python_executable is not None:
+            return
+        commands = []
+        base_command = "%s -c \"import sys; sys.stdout.write(sys.executable)\""
+        for python_name in ["python3",
+                            "python",
+                            "python2"]:
+            command = self.execute(base_command % python_name)
+            commands.append(command)
+        for command in commands:
+            command.wait(1.0)
+            if command.exit_status == 0:
+                python_executable = command.stdout.strip()
+                if isinstance(python_executable, bytes):
+                    python_executable = python_executable.decode("utf-8")
+                self._python_executable = python_executable
+                break
 
     @property
     def closed(self):

@@ -72,3 +72,6 @@ class LocalWorker(BaseWorker):
         command = LocalCommand(self, command)
         self._commands.append(command)
         return command
+
+    def _find_python_executable(self):
+        self._python_executable = sys.executable

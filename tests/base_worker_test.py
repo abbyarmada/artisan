@@ -264,3 +264,41 @@ class _BaseWorkerTestCase(object):
 
         file_attrs = worker.stat("tmp1")
         self.assertEqual(file_attrs.st_size, 13)
+
+    def test_find_python_executable(self):
+        worker = self.make_worker()
+        self.assertIsNot(worker.python_executable, None)
+
+    def test_python_version(self):
+        worker = self.make_worker()
+        worker._python_executable = sys.executable
+        self.assertEqual(worker.python_version, tuple(sys.version_info)[:3])
+
+    def test_execute_python_stdout(self):
+        worker = self.make_worker()
+        command = worker.execute_python("import sys; sys.stdout.write('Hello, world!')")
+        command.wait(1.0)
+        self.assertEqual(command.stdout, b'Hello, world!')
+
+    def test_execute_python_stderr(self):
+        worker = self.make_worker()
+        command = worker.execute_python("import sys; sys.stderr.write('Hello, world!')")
+        command.wait(1.0)
+        self.assertEqual(command.stderr, b'Hello, world!')
+
+    def test_execute_python_exit_code(self):
+        worker = self.make_worker()
+        for exit_status in range(10):
+            command = worker.execute_python("import sys; sys.exit(%s)" % exit_status)
+            command.wait(1.0)
+            self.assertEqual(command.exit_status, exit_status)
+
+    def test_exeucte_python_multiple_lines(self):
+        worker = self.make_worker()
+        code = """
+import sys
+sys.stdout.write('Hello, world!')
+"""
+        command = worker.execute_python(code)
+        command.wait(1.0)
+        self.assertEqual(command.stdout, b'Hello, world!')
