@@ -1,5 +1,6 @@
 import os
 import sys
+import tempfile
 import time
 
 if sys.version_info >= (2, 7):
@@ -302,3 +303,8 @@ sys.stdout.write('Hello, world!')
         command = worker.execute_python(code)
         command.wait(1.0)
         self.assertEqual(command.stdout, b'Hello, world!')
+
+    def test_tempdir(self):
+        worker = self.make_worker()
+        self.assertEqual(worker.tempdir, tempfile.gettempdir())
+        self.assertTrue(worker.isdir(worker.tempdir))

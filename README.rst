@@ -27,11 +27,11 @@ Artisan
 About
 -----
 
-Artisan is a generalized farm management module for highly customized build and testing pipelines.
+Providing a platform-agnostic interface for automation, continuous integration, and farm management.
 
 - Generic interface for managing a farm.
-- Easily extensible for custom use-cases.
-- Support for Linux, Mac OS, and Windows Servers and Workers.
+- Easily extensible for custom use cases.
+- Support for Linux, Mac OS, and Windows servers and workers.
 - High code health and test coverage.
 
 License

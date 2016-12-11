@@ -2,7 +2,8 @@
 be implemented by all Worker implementations. """
 import re
 from collections import namedtuple
-from ..compat import Lock
+from ..compat import RLock
+from ..util import convert_to_string
 __all__ = [
     "BaseWorker",
     "FileAttributes"
@@ -24,13 +25,15 @@ FileAttributes = namedtuple("FileAttributes", ["st_mode",
 
 class BaseWorker(object):
     def __init__(self, user, host):
-        self._lock = Lock()
+        self._lock = RLock()
         self.user = user
         self.host = host
         self.environ = {}
 
+        self._tempdir = None
         self._python_version = None
         self._python_executable = None
+        self._virtualenv_path = None
         self._pool = None
         self._commands = []
         self._closed = False
@@ -67,8 +70,22 @@ class BaseWorker(object):
     def stat(self, path, follow_symlinks=True):
         raise NotImplementedError()
 
+    def isdir(self, path):
+        raise NotImplementedError()
+
     def open(self, path, mode="r"):
         raise NotImplementedError()
+
+    @property
+    def tempdir(self):
+        if self._tempdir is None:
+            with self._lock:
+                if self._tempdir is None:
+                    code = "import sys, tempfile; sys.stdout.write(tempfile.gettempdir())"
+                    command = self.execute_python(code)
+                    command.wait(1.0)
+                    self._tempdir = convert_to_string(command.stdout)
+        return self._tempdir
 
     def execute_python(self, code):
         return self.execute("%s -c \"%s\"" % (self.python_executable,
@@ -107,9 +124,7 @@ class BaseWorker(object):
         for command in commands:
             command.wait(1.0)
             if command.exit_status == 0:
-                python_executable = command.stdout.strip()
-                if isinstance(python_executable, bytes):
-                    python_executable = python_executable.decode("utf-8")
+                python_executable = convert_to_string(command.stdout.strip())
                 self._python_executable = python_executable
                 break
 

@@ -65,6 +65,9 @@ class LocalWorker(BaseWorker):
                               st_dev=stat.st_dev,
                               st_nlink=stat.st_nlink)
 
+    def isdir(self, path):
+        return os.path.isdir(path)
+
     def open(self, path, mode="r"):
         return open(self._normalize_path(path), mode)
 
@@ -75,3 +78,7 @@ class LocalWorker(BaseWorker):
 
     def _find_python_executable(self):
         self._python_executable = sys.executable
+
+    @property
+    def python_version(self):
+        return tuple(sys.version_info)[:3]
