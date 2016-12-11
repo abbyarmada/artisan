@@ -131,7 +131,8 @@ class TestWorkerGroup(unittest.TestCase):
 
         for (start, _) in times:
             for (_, end) in times:
-                self.assertTrue(start < end)
+                print(start, end)
+                self.assertTrue(start <= end)
 
     def test_create_lock_already_in_group(self):
         group = WorkerGroup()
