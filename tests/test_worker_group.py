@@ -1,3 +1,4 @@
+import random
 import sys
 import time
 import threading
@@ -104,3 +105,40 @@ class TestWorkerGroup(unittest.TestCase):
                 self.assertFalse(start2 < start1 < end2)
                 self.assertFalse(start1 < end2 < end1)
                 self.assertFalse(start2 < end1 < end2)
+
+    def test_barrier_timing(self):
+        group = WorkerGroup()
+        workers = [self.make_worker() for _ in range(5)]
+        for worker in workers:
+            group.add_worker(worker)
+        group.create_barrier("test")
+        times = []
+
+        def wait_barrier_with_timing(_):
+            time.sleep(random.randint(1, 10) / 10.0)
+            start_time = monotonic()
+            group.wait_barrier("test")
+            end_time = monotonic()
+            times.append((start_time, end_time))
+
+        threads = []
+        for worker in workers:
+            thread = WorkerThread(worker, wait_barrier_with_timing)
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        for (start, _) in times:
+            for (_, end) in times:
+                self.assertTrue(start < end)
+
+    def test_create_lock_already_in_group(self):
+        group = WorkerGroup()
+        group.create_lock("test")
+        self.assertRaises(ValueError, group.create_lock, "test")
+
+    def test_create_barrier_already_in_group(self):
+        group = WorkerGroup()
+        group.create_barrier("test")
+        self.assertRaises(ValueError, group.create_barrier, "test")
