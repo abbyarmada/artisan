@@ -57,11 +57,28 @@ class _BaseWorkerTestCase(object):
             self.assertEqual(command.exit_status, 0)
         self.assertLessEqual(end_time - start_time, 3.0)
 
+    def test_execute_supply_environment(self):
+        worker = self.make_worker()
+        command = worker.execute(sys.executable + " -c \"import os, sys; sys.stdout.write(os.environ['ENVIRONMENT'])\"",
+                                 environment={"ENVIRONMENT": "VARIABLE"})
+        command.wait(1.0)
+        print(command.exit_status)
+        print(command.stderr)
+        self.assertEqual(command.stdout, b'VARIABLE')
+
+    def test_execute_override_environment(self):
+        worker = self.make_worker()
+        worker.environ["ENVIRONMENT"] = "VARIABLE1"
+        command = worker.execute(sys.executable + " -c \"import os, sys; sys.stdout.write(os.environ['ENVIRONMENT'])\"",
+                                 environment={"ENVIRONMENT": "VARIABLE2"})
+        command.wait(1.0)
+        self.assertEqual(command.stdout, b'VARIABLE2')
+
     def test_stdout(self):
         worker = self.make_worker()
         command = worker.execute(sys.executable + " -c \"import sys; sys.stdout.write('Hello')\"")
         command.wait(0.1)
-        self.assertEqual(command.stdout.strip(), b'Hello')
+        self.assertEqual(command.stdout, b'Hello')
         self.assertEqual(command.stderr, b'')
         self.assertEqual(command.exit_status, 0)
 
@@ -69,7 +86,7 @@ class _BaseWorkerTestCase(object):
         worker = self.make_worker()
         command = worker.execute(sys.executable + " -c \"import sys; sys.stderr.write('Hello')\"")
         command.wait(0.1)
-        self.assertEqual(command.stderr.strip(), b'Hello')
+        self.assertEqual(command.stderr, b'Hello')
         self.assertEqual(command.stdout, b'')
         self.assertEqual(command.exit_status, 0)
 
@@ -148,7 +165,7 @@ class _BaseWorkerTestCase(object):
     def test_chdir(self):
         cwd = os.getcwd()
         worker = self.make_worker()
-        worker.chdir(cwd)
+        worker.change_directory(cwd)
         command = worker.execute(sys.executable + " -c \"import os, sys; sys.stdout.write(os.getcwd())\"")
         command.wait(0.1)
         self.assertEqual(cwd, str(command.stdout).replace("\\\\", "\\").strip("b'\""))
@@ -156,15 +173,15 @@ class _BaseWorkerTestCase(object):
     def test_chdir_same_directory(self):
         same_dir = os.getcwd()
         worker = self.make_worker()
-        worker.chdir(same_dir)
-        worker.chdir(".")
+        worker.change_directory(same_dir)
+        worker.change_directory(".")
         self.assertEqual(same_dir, worker.cwd)
 
     def test_chdir_parent_directory(self):
         parent_dir = os.path.dirname(os.getcwd())
         worker = self.make_worker()
-        worker.chdir(os.getcwd())
-        worker.chdir("..")
+        worker.change_directory(os.getcwd())
+        worker.change_directory("..")
         self.assertEqual(parent_dir, worker.cwd)
 
     def test_environ_get(self):
@@ -189,21 +206,21 @@ class _BaseWorkerTestCase(object):
     def test_listdir(self):
         expected = sorted(os.listdir("."))
         worker = self.make_worker()
-        worker.chdir(os.getcwd())
-        self.assertEqual(sorted(worker.listdir()), expected)
+        worker.change_directory(os.getcwd())
+        self.assertEqual(sorted(worker.list_directory()), expected)
 
     def test_listdir_give_path(self):
         expected = sorted(os.listdir("."))
         worker = self.make_worker()
-        self.assertEqual(sorted(worker.listdir(path=os.getcwd())), expected)
+        self.assertEqual(sorted(worker.list_directory(path=os.getcwd())), expected)
 
     def test_open_file(self):
         worker = self.make_worker()
         self.addCleanup(_safe_remove, "tmp")
         _safe_remove("tmp")
-        with worker.open("tmp", mode="w") as f:
+        with worker.open_file("tmp", mode="w") as f:
             f.write("Hello, world!")
-        with worker.open("tmp", mode="r") as f:
+        with worker.open_file("tmp", mode="r") as f:
             self.assertEqual(f.read(), "Hello, world!")
 
     def test_changing_cwd(self):
@@ -219,7 +236,7 @@ class _BaseWorkerTestCase(object):
         self.addCleanup(_safe_remove, "tmp2")
         _safe_remove("tmp1")
         _safe_remove("tmp2")
-        with worker.open("tmp1", mode="w") as f:
+        with worker.open_file("tmp1", mode="w") as f:
             f.write("put")
 
         self.assertTrue(os.path.isfile("tmp1"))
@@ -230,7 +247,7 @@ class _BaseWorkerTestCase(object):
         self.assertFalse(os.path.isfile("tmp1"))
         self.assertTrue(os.path.isfile("tmp2"))
 
-        with worker.open("tmp2", mode="r") as f:
+        with worker.open_file("tmp2", mode="r") as f:
             self.assertEqual(f.read(), "put")
 
     def test_get_file(self):
@@ -239,7 +256,7 @@ class _BaseWorkerTestCase(object):
         self.addCleanup(_safe_remove, "tmp2")
         _safe_remove("tmp1")
         _safe_remove("tmp2")
-        with worker.open("tmp1", mode="w") as f:
+        with worker.open_file("tmp1", mode="w") as f:
             f.write("get")
 
         self.assertTrue(os.path.isfile("tmp1"))
@@ -250,7 +267,7 @@ class _BaseWorkerTestCase(object):
         self.assertFalse(os.path.isfile("tmp1"))
         self.assertTrue(os.path.isfile("tmp2"))
 
-        with worker.open("tmp2", mode="r") as f:
+        with worker.open_file("tmp2", mode="r") as f:
             self.assertEqual(f.read(), "get")
 
     def test_stat(self):
@@ -258,10 +275,10 @@ class _BaseWorkerTestCase(object):
         self.addCleanup(_safe_remove, "tmp1")
         _safe_remove("tmp1")
 
-        with worker.open("tmp1", mode="w") as f:
+        with worker.open_file("tmp1", mode="w") as f:
             f.write("Hello, world!")
 
-        file_attrs = worker.stat("tmp1", follow_symlinks=False)
+        file_attrs = worker.stat_file("tmp1", follow_symlinks=False)
         self.assertEqual(file_attrs.st_size, 13)
 
     @unittest.skipIf(sys.platform == "win32", "Windows doesn't implement symbolic links.")
@@ -272,11 +289,11 @@ class _BaseWorkerTestCase(object):
         _safe_remove("tmp1")
         _safe_remove("tmp2")
 
-        with worker.open("tmp2", mode="w") as f:
+        with worker.open_file("tmp2", mode="w") as f:
             f.write("Hello, world!")
         os.symlink("tmp2", "tmp1")
 
-        file_attrs = worker.stat("tmp1")
+        file_attrs = worker.stat_file("tmp1")
         self.assertEqual(file_attrs.st_size, 13)
 
     def test_find_python_executable(self):
@@ -319,5 +336,5 @@ sys.stdout.write('Hello, world!')
 
     def test_tempdir(self):
         worker = self.make_worker()
-        self.assertEqual(worker.tempdir, tempfile.gettempdir())
-        self.assertTrue(worker.isdir(worker.tempdir))
+        self.assertEqual(worker.tmp_directory, tempfile.gettempdir())
+        self.assertTrue(worker.is_directory(worker.tmp_directory))

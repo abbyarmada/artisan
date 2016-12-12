@@ -30,7 +30,7 @@ class LocalWorker(BaseWorker):
         else:
             return os.path.normpath(os.path.expanduser(os.path.join(self._cwd, path)))
 
-    def chdir(self, path):
+    def change_directory(self, path):
         with self._lock:
             self._cwd = self._normalize_path(path)
 
@@ -38,7 +38,7 @@ class LocalWorker(BaseWorker):
     def cwd(self):
         return self._cwd
 
-    def listdir(self, path="."):
+    def list_directory(self, path="."):
         return os.listdir(self._normalize_path(path))
 
     def get_file(self, remote_path, local_path):
@@ -49,7 +49,7 @@ class LocalWorker(BaseWorker):
         shutil.move(self._normalize_path(local_path),
                     self._normalize_path(remote_path))
 
-    def stat(self, path, follow_symlinks=True):
+    def stat_file(self, path, follow_symlinks=True):
         if follow_symlinks:
             stat = os.stat(self._normalize_path(path))
         else:
@@ -65,20 +65,29 @@ class LocalWorker(BaseWorker):
                               st_dev=stat.st_dev,
                               st_nlink=stat.st_nlink)
 
-    def isdir(self, path):
+    def is_directory(self, path):
         return os.path.isdir(path)
 
-    def open(self, path, mode="r"):
+    def is_file(self, path):
+        return os.path.isfile(path)
+
+    def open_file(self, path, mode="r"):
         return open(self._normalize_path(path), mode)
 
-    def remove(self, path):
+    def remove_file(self, path):
         os.remove(path)
 
     def path_join(self, path, *paths):
         return os.path.join(path, *paths)
 
-    def execute(self, command):
-        command = LocalCommand(self, command)
+    def path_normpath(self, path):
+        return os.path.normpath(path)
+
+    def path_dirname(self, path):
+        return os.path.dirname(path)
+
+    def execute(self, command, environment=None):
+        command = LocalCommand(self, command, environment)
         self._commands.append(command)
         return command
 

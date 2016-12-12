@@ -1,5 +1,7 @@
 """ Worker implementation for Python 3.3+ which
 has access to timeout in Popen.communicate() """
+import os
+import sys
 import subprocess
 from ..base_command import BaseCommand
 __all__ = [
@@ -8,9 +10,20 @@ __all__ = [
 
 
 class LocalCommand(BaseCommand):
-    def __init__(self, worker, command):
+    def __init__(self, worker, command, environment=None):
         super(LocalCommand, self).__init__(worker, command)
-        self._proc = self._create_subprocess()
+        if environment is None:
+            environment = worker.environ.copy()
+
+        # PATH should be in the environment to be able to find binaries.
+        if "PATH" not in environment and "PATH" in os.environ:
+            environment["PATH"] = os.environ["PATH"]
+
+        # Windows requires this environment variable to be set before executing.
+        if sys.platform == "win32" and "SYSTEMROOT" in os.environ:
+            environment["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
+
+        self._proc = self._create_subprocess(environment)
 
     def _read_all(self, timeout=0.0):
         with self._lock:

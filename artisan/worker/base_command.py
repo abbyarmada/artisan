@@ -76,13 +76,13 @@ class BaseCommand(object):
                 for callback in self._callbacks:
                     callback(self)
 
-    def _create_subprocess(self):
+    def _create_subprocess(self, environment=None):
         return subprocess.Popen(self.command,
                                 shell=True,
                                 cwd=self.worker.cwd,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
-                                env=self.worker.environ)
+                                env=environment)
 
     def add_callback(self, callback):
         self._callbacks.append(callback)

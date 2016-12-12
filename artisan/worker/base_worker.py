@@ -46,7 +46,7 @@ class BaseWorker(object):
     def __repr__(self):
         return str(self)
 
-    def execute(self, command):
+    def execute(self, command, environment=None):
         raise NotImplementedError()
 
     @property
@@ -57,10 +57,10 @@ class BaseWorker(object):
     def cwd(self):
         raise NotImplementedError()
 
-    def chdir(self, path):
+    def change_directory(self, path):
         raise NotImplementedError()
 
-    def listdir(self, path="."):
+    def list_directory(self, path="."):
         raise NotImplementedError()
 
     def get_file(self, remote_path, local_path):
@@ -69,23 +69,32 @@ class BaseWorker(object):
     def put_file(self, local_path, remote_path):
         raise NotImplementedError()
 
-    def stat(self, path, follow_symlinks=True):
+    def stat_file(self, path, follow_symlinks=True):
         raise NotImplementedError()
 
-    def isdir(self, path):
+    def is_directory(self, path):
         raise NotImplementedError()
 
-    def open(self, path, mode="r"):
+    def is_file(self, path):
         raise NotImplementedError()
 
-    def remove(self, path):
+    def open_file(self, path, mode="r"):
+        raise NotImplementedError()
+
+    def remove_file(self, path):
         raise NotImplementedError()
 
     def path_join(self, path, *paths):
         raise NotImplementedError()
 
+    def path_normpath(self, path):
+        raise NotImplementedError()
+
+    def path_dirname(self, path):
+        raise NotImplementedError()
+
     @property
-    def tempdir(self):
+    def tmp_directory(self):
         if self._tempdir is None:
             with self._lock:
                 if self._tempdir is None:
@@ -95,23 +104,25 @@ class BaseWorker(object):
                     self._tempdir = convert_to_string(command.stdout)
         return self._tempdir
 
-    def execute_python(self, code):
+    def execute_python(self, code, environment=None):
         # Multi-line code executes differently.
         if "\n" in code:
-            temp_path = self.path_join(self.tempdir, "artisan-tmp-" + uuid.uuid4().hex)
-            with self.open(temp_path, mode="w") as f:
+            temp_path = self.path_join(self.tmp_directory, "artisan-tmp-" + uuid.uuid4().hex)
+            with self.open_file(temp_path, mode="w") as f:
                 f.write(code)
 
             def remove_callback(_):
                 try:
-                    self.remove(temp_path)
+                    self.remove_file(temp_path)
                 except Exception:  # Skip coverage.
                     pass
 
-            command = self.execute("%s %s" % (self.python_executable, temp_path))
+            command = self.execute("%s %s" % (self.python_executable, temp_path),
+                                   environment=environment)
             command.add_callback(remove_callback)
             return command
-        return self.execute("%s -c \"%s\"" % (self.python_executable, code.replace("\n", "\\n")))
+        return self.execute("%s -c \"%s\"" % (self.python_executable, code),
+                            environment=environment)
 
     @property
     def python_version(self):

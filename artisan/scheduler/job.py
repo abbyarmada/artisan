@@ -7,11 +7,11 @@ __all__ = [
 
 
 class JobStatus(enum.Enum):
-    SCHEDULED = 'Scheduled'
-    ACTIVE = 'Active'
-    SUCCESS = 'Success'
-    UNSTABLE = 'Unstable'
-    FAILURE = 'Failure'
+    SCHEDULED = "Scheduled"
+    ACTIVE = "Active"
+    SUCCESS = "Success"
+    UNSTABLE = "Unstable"
+    FAILURE = "Failure"
 
 
 class Job(object):

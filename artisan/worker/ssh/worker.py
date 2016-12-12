@@ -17,7 +17,7 @@ class SshWorker(BaseWorker):
 
         self.environ = self._get_environment()
 
-    def execute(self, command):
+    def execute(self, command, environment=None):
         command = SshCommand(self._ssh, self, command)
         self._commands.append(command)
         return command
@@ -34,11 +34,11 @@ class SshWorker(BaseWorker):
     def cwd(self):
         return self._sftp.getcwd()
 
-    def chdir(self, path):
+    def change_directory(self, path):
         with self._lock:
             self._sftp.chdir(path)
 
-    def listdir(self, path="."):
+    def list_directory(self, path="."):
         with self._lock:
             return self._sftp.listdir(path)
 

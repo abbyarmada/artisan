@@ -1,6 +1,8 @@
 """ Worker implementation for Python 2.6+ where
 subprocess.Popen doesn't define timeouts for any
 of it's functions. """
+import os
+import sys
 import threading
 from ..base_command import BaseCommand
 from ...compat import monotonic
@@ -35,9 +37,20 @@ class _QueueThread(threading.Thread):
 
 
 class LocalCommand(BaseCommand):
-    def __init__(self, worker, command):
+    def __init__(self, worker, command, environment=None):
         super(LocalCommand, self).__init__(worker, command)
-        self._proc = self._create_subprocess()
+        if environment is None:
+            environment = worker.environ.copy()
+
+        # PATH should be in the environment to be able to find binaries.
+        if "PATH" not in environment and "PATH" in os.environ:
+            environment["PATH"] = os.environ["PATH"]
+
+        # Windows requires this environment variable to be set before executing.
+        if sys.platform == "win32" and "SYSTEMROOT" in os.environ:
+            environment["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
+
+        self._proc = self._create_subprocess(environment)
         self._queue_threads = [_QueueThread(self._proc.stdout),
                                _QueueThread(self._proc.stderr)]
         self._queue_stdout = self._queue_threads[0].queue

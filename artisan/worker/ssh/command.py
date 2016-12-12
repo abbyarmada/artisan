@@ -8,11 +8,13 @@ __all__ = [
 
 
 class SshCommand(BaseCommand):
-    def __init__(self, client, worker, command):
+    def __init__(self, client, worker, command, environment=None):
         assert isinstance(client, paramiko.SSHClient)
         super(SshCommand, self).__init__(worker, command)
+        if environment is None:
+            environment = worker.environ
         _, stdout_file, _ = client.exec_command(command,
-                                                environment=worker.environ)
+                                                environment=environment)
         self._channel = stdout_file.channel
 
     def _read_all(self, timeout=0.0):
