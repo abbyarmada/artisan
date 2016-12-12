@@ -105,7 +105,7 @@ class BaseWorker(object):
             def remove_callback(_):
                 try:
                     self.remove(temp_path)
-                except Exception:
+                except Exception:  # Skip coverage.
                     pass
 
             command = self.execute("%s %s" % (self.python_executable, temp_path))
