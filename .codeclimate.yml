@@ -3,10 +3,13 @@ engines:
     enabled: true
     config:
       threshold: "C"
-
   duplication:
     enabled: true
-
+    config:
+     languages:
+       python:
 ratings:
   paths:
     - "**.py"
+exclude_paths
+- "tests/"
