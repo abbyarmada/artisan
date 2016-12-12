@@ -71,6 +71,12 @@ class LocalWorker(BaseWorker):
     def open(self, path, mode="r"):
         return open(self._normalize_path(path), mode)
 
+    def remove(self, path):
+        os.remove(path)
+
+    def path_join(self, path, *paths):
+        return os.path.join(path, *paths)
+
     def execute(self, command):
         command = LocalCommand(self, command)
         self._commands.append(command)
