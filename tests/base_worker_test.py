@@ -108,6 +108,19 @@ class _BaseWorkerTestCase(object):
         self.assertEqual(command.stdout, b'')
         self.assertEqual(command.stderr, b'')
 
+    def test_command_callbacks(self):
+        array = []
+        worker = self.make_worker()
+        command = worker.execute(sys.executable + " -c \"import sys, time; time.sleep(1.0);\"")
+
+        def callback(cmd):
+            self.assertIs(cmd, command)
+            array.append(1)
+
+        command.add_callback(callback)
+        command.wait(1.0)
+        self.assertIn(1, array)
+
     def test_close_worker(self):
         worker = self.make_worker()
         command = worker.execute("sleep 1")

@@ -1,6 +1,6 @@
 import subprocess
 from .base_worker import BaseWorker
-from ..compat import Lock, monotonic
+from ..compat import RLock, monotonic
 
 __all__ = [
     "BaseCommand"
@@ -10,7 +10,7 @@ __all__ = [
 class BaseCommand(object):
     def __init__(self, worker, command):
         assert isinstance(worker, BaseWorker)
-        self._lock = Lock()
+        self._lock = RLock()
         self.worker = worker
         self.command = command
 
@@ -18,10 +18,14 @@ class BaseCommand(object):
         self._exit_status = None
         self._stdout = b''
         self._stderr = b''
+        self._callbacks_called = False
+        self._callbacks = []
 
     def _check_exit(self):
         if self._is_not_complete():
             self._read_all(0.0)
+            if not self._is_not_complete():
+                self._on_complete()
 
     @property
     def stderr(self):
@@ -41,6 +45,7 @@ class BaseCommand(object):
     def wait(self, timeout=None):
         start_time = monotonic()
         read_timeout = timeout
+        not_complete = self._is_not_complete()
         while self._is_not_complete():
             self._read_all(read_timeout)
             if timeout is not None:
@@ -48,6 +53,8 @@ class BaseCommand(object):
                 if current_time - start_time > timeout:
                     break
                 read_timeout = max(0.0, (start_time + timeout) - current_time)
+        if not_complete:
+            self._on_complete()
 
     def _is_not_complete(self):
         return self._exit_status is None
@@ -62,6 +69,13 @@ class BaseCommand(object):
     def cancelled(self):
         return self._cancelled
 
+    def _on_complete(self):
+        with self._lock:
+            if not self._callbacks_called:
+                self._callbacks_called = True
+                for callback in self._callbacks:
+                    callback(self)
+
     def _create_subprocess(self):
         return subprocess.Popen(self.command,
                                 shell=True,
@@ -69,3 +83,6 @@ class BaseCommand(object):
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
                                 env=self.worker.environ)
+
+    def add_callback(self, callback):
+        self._callbacks.append(callback)

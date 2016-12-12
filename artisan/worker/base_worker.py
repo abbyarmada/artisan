@@ -1,6 +1,7 @@
 """ Interface for the Worker class that must
 be implemented by all Worker implementations. """
 import re
+import uuid
 from collections import namedtuple
 from ..compat import RLock
 from ..util import convert_to_string
@@ -30,6 +31,7 @@ class BaseWorker(object):
         self.host = host
         self.environ = {}
 
+        self._dist_info = None
         self._tempdir = None
         self._python_version = None
         self._python_executable = None
@@ -76,6 +78,12 @@ class BaseWorker(object):
     def open(self, path, mode="r"):
         raise NotImplementedError()
 
+    def remove(self, path):
+        raise NotImplementedError()
+
+    def path_join(self, path, *paths):
+        raise NotImplementedError()
+
     @property
     def tempdir(self):
         if self._tempdir is None:
@@ -88,8 +96,22 @@ class BaseWorker(object):
         return self._tempdir
 
     def execute_python(self, code):
-        return self.execute("%s -c \"%s\"" % (self.python_executable,
-                                              code))
+        # Multi-line code executes differently.
+        if "\n" in code:
+            temp_path = self.path_join(self.tempdir, "artisan-tmp-" + uuid.uuid4().hex)
+            with self.open(temp_path, mode="w") as f:
+                f.write(code)
+
+            def remove_callback(_):
+                try:
+                    self.remove(temp_path)
+                except Exception:  # Skip coverage.
+                    pass
+
+            command = self.execute("%s %s" % (self.python_executable, temp_path))
+            command.add_callback(remove_callback)
+            return command
+        return self.execute("%s -c \"%s\"" % (self.python_executable, code.replace("\n", "\\n")))
 
     @property
     def python_version(self):
